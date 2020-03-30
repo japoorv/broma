@@ -24,59 +24,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button goButton;
     int index;
+     TextView phN ;
+     TextView stat;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        goButton = (Button) findViewById(R.id.button);
+        goButton = findViewById(R.id.button);
         goButton.setOnClickListener(MainActivity.this);
 
     }
     @Override
     public void onClick(View v) {
         EditText editText;
-        TextView phN;
-        editText = (EditText) findViewById(R.id.editText);
-        phN = (TextView) findViewById(R.id.phN);
+        editText = findViewById(R.id.editText);
+        phN = findViewById(R.id.phN);
+        stat = findViewById(R.id.textView4);
         String phoneNumber = editText.getText().toString();
         if (!isValidPhoneNumber(phoneNumber))
             phN.setText("Invalid Phone Number");
         else {
-            phN.setText("Ready !");
-            ((TextView)findViewById((R.id.textView4))).setText("0");
-            String numMssg = ((EditText) findViewById((R.id.editText2))).getText().toString();
-            int numMsg = Integer.parseInt(numMssg);
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            String URL = "https://message-spam.herokuapp.com/?n="+phoneNumber;
-            goButton.setEnabled(false);
-            index=0;
-            for (index=0;index<numMsg;index++) {
-                JsonObjectRequest objectRequest = new JsonObjectRequest(
-                        Request.Method.GET,
-                        URL,
-                        null,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    Log.d("status",response.getString("status"));
-                                    if (response.getInt("status")!=-1)
-                                        ((TextView)findViewById((R.id.textView4))).setText(""+(index+1));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
 
-                            }
+            phN.setText("Ready !");
+            stat.setText("0");
+            String numMssg = ((EditText) findViewById((R.id.editText2))).getText().toString();
+            final int numMsg = Integer.parseInt(numMssg);
+            String URL = "https://message-spam.herokuapp.com/?n="+phoneNumber;
+            RequestQueue RQ = Volley.newRequestQueue(this);
+
+            index=0;
+            if (numMsg>0)
+                goButton.setEnabled(false);
+            final JsonObjectRequest objectRequest = new JsonObjectRequest(
+                    Request.Method.GET,
+                    URL,
+                    null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            index++;
+                            Log.d("respose",""+response);
+                            stat.setText(""+index);
+                            if (index==numMsg)
+                                goButton.setEnabled(true);
+
                         }
-                    );
-                requestQueue.add(objectRequest);
-            }
-            goButton.setEnabled(true);
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+
+                        }
+                    }
+                );
+               for (int c=0;c<numMsg;c++)
+                   RQ.add(objectRequest);
+
+
+
+
+           //goButton.setEnabled(true);
         }
     }
 
